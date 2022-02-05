@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"tasker-api/database"
-	"tasker-api/utils"
+
+	"github.com/mikeunge/Tasker/api/database"
+	"github.com/mikeunge/Tasker/api/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"

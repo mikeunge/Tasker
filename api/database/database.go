@@ -1,7 +1,7 @@
 package database
 
 import (
-	"tasker-api/utils"
+	"github.com/mikeunge/Tasker/api/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
