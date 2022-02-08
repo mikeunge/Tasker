@@ -3,44 +3,38 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/mikeunge/Tasker/api/controller"
 	"github.com/mikeunge/Tasker/api/database"
-	"github.com/mikeunge/Tasker/api/repository"
 	"github.com/mikeunge/Tasker/api/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 )
 
-func main() {
+func init() {
 	godotenv.Load(".env")
-	db, err := database.Connect()
+	tz, err := time.LoadLocation("Europe/Vienna")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Setting the timezone went wrong, exiting.\n\nError: %v\n", err)
+		os.Exit(1)
+	}
+	time.Local = tz
+}
+
+func main() {
+	err := database.Connect()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not connect to database.\n\nError: %v\n", err)
 		os.Exit(1)
 	}
-	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		taskRepo := repository.NewTaskRepository(db)
-		tasks, err := taskRepo.GetAll()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("%+v", tasks)
-		}
-		return c.SendString("Hello, World 👋!")
-	})
-	app.Get("/add", func(c *fiber.Ctx) error {
-		taskRepo := repository.NewTaskRepository(db)
-		task, err := taskRepo.Add()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Print(task)
-		}
-		return c.SendString("Create task")
-	})
+	app := fiber.New()
+	app.Use(logger.New())
+
+	controller.Register(app)
 
 	port, err := utils.GetEnv("APP_PORT")
 	if err != nil {

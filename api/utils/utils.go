@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"os"
+
+	"github.com/gofrs/uuid"
 )
 
 func GetEnv(key string) (string, error) {
@@ -12,4 +14,9 @@ func GetEnv(key string) (string, error) {
 	} else {
 		return val, nil
 	}
+}
+
+func IsValidUUID(u string) bool {
+	_, err := uuid.FromString(u)
+	return err == nil
 }

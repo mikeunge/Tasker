@@ -1,20 +1,15 @@
 package entity
 
 import (
-	"errors"
 	"time"
 
 	"github.com/gofrs/uuid"
-)
-
-var (
-	errorEmptyTitle = errors.New("title cannot be empty")
-	errorEmptyText  = errors.New("text cannot be empty")
+	"github.com/mikeunge/Tasker/api/errors"
 )
 
 // Database model
 type Task struct {
-	base      `gorm:"primaryKey"`
+	Id        string `gorm:"primaryKey"`
 	Title     string
 	Text      string
 	Done      bool
@@ -27,16 +22,17 @@ type Task struct {
 type TaskRepository interface {
 	GetAll() []Task
 	Get(string) (*Task, error)
-	Add(Task) (string, error)
-	Update(Task) error
+	Add(string, string) (string, error)
+	Update(string, string, string) error
+	Delete(*Task) error
 }
 
-func NewTask(title string, text string) (*Task, error) {
+func NewTask(title, text string) (*Task, error) {
 	if title == "" {
-		return &Task{}, errorEmptyTitle
+		return &Task{}, errors.EmptyTitle
 	}
 	if text == "" {
-		return &Task{}, errorEmptyText
+		return &Task{}, errors.EmptyText
 	}
 
 	uid, err := uuid.NewV4()
@@ -44,13 +40,12 @@ func NewTask(title string, text string) (*Task, error) {
 		return &Task{}, err
 	}
 
-	var t = &Task{
+	task := &Task{
+		Id:        uid.String(),
 		Title:     title,
 		Text:      text,
 		Done:      false,
 		CreatedAt: time.Now(),
 	}
-	t.base.SetId(uid.String())
-
-	return t, nil
+	return task, nil
 }
