@@ -30,8 +30,8 @@ func (r *taskRepository) GetAll() ([]entity.Task, error) {
 	return tasks, errors.NoTasksFound
 }
 
-func (r *taskRepository) Add(title, text string) (*entity.Task, error) {
-	task, err := entity.NewTask(title, text)
+func (r *taskRepository) Add(title, text string, done bool) (*entity.Task, error) {
+	task, err := entity.NewTask(title, text, done)
 	if err != nil {
 		fmt.Println(err)
 		return task, errors.FailedToAddTask
@@ -55,8 +55,9 @@ func (r *taskRepository) Get(id string) (*entity.Task, error) {
 	return &task, nil
 }
 
-func (r *taskRepository) Update(id, title, text string) error {
-	res := r.db.Model(&entity.Task{}).Where("id = ?", id).Updates(&entity.Task{Title: title, Text: text, UpdatedAt: time.Now()})
+// TODO: update only changed fields
+func (r *taskRepository) Update(id, title, text string, done bool) error {
+	res := r.db.Model(&entity.Task{}).Where("id = ?", id).Updates(map[string]interface{}{"title": title, "text": text, "done": done, "updated_at": time.Now()})
 	if res.Error != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %+v", res.Error.Error())
 		return errors.FailedToUpdateTask

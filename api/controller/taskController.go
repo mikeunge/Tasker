@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/mikeunge/Tasker/api/entity"
 	"github.com/mikeunge/Tasker/api/repository"
 	"github.com/mikeunge/Tasker/api/utils"
 )
@@ -57,8 +58,15 @@ func getTaskById(c *fiber.Ctx) error {
 }
 
 func addTask(c *fiber.Ctx) error {
+	t := new(entity.Task)
+	if err := c.BodyParser(t); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":  make([]string, 0),
+			"error": "data is not correctly formatted",
+		})
+	}
 	taskRepo := repository.NewTaskRepository()
-	task, err := taskRepo.Add("abc", "dieser text")
+	task, err := taskRepo.Add(t.Title, t.Text, t.Done)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -80,8 +88,15 @@ func updateTask(c *fiber.Ctx) error {
 			"error": "provided id is not a valid id",
 		})
 	}
+	t := new(entity.Task)
+	if err := c.BodyParser(t); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":  make([]string, 0),
+			"error": "data is not correctly formatted",
+		})
+	}
 	taskRepo := repository.NewTaskRepository()
-	err := taskRepo.Update(id, "cbd", "neuer text")
+	err := taskRepo.Update(id, t.Title, t.Text, t.Done)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -104,7 +119,7 @@ func deleteTask(c *fiber.Ctx) error {
 		})
 	}
 	taskRepo := repository.NewTaskRepository()
-	err := taskRepo.Update(id, "cbd", "neuer text")
+	err := taskRepo.Update(id, "cbd", "neuer text", false)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
