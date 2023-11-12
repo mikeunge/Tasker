@@ -10,4 +10,5 @@ function clean_database {
     rm -rf ~/.tasker/database.sqlite
 }
 
+clean_database
 go run main.go --debug $@
