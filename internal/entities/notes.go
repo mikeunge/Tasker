@@ -2,11 +2,10 @@ package entities
 
 import "time"
 
-type ITask struct {
+type INotes struct {
 	Id          int
-	ProjectId   int
+	TaskId      int
 	Title       string
 	Description string
-	StatusId    int
 	CreatedAt   time.Time
 }
