@@ -6,18 +6,23 @@ import (
 	log "github.com/mikeunge/Tasker/pkg/logger"
 )
 
-func NewProject(name string) (entities.IProject, error) {
-	var project entities.IProject
-	project.Name = name
+var projectRepository *repository.ProjectRepository
+
+func init() {
+	projectRepository = repository.NewProjectRepository()
+}
+
+func NewProject(name string) (*entities.IProject, error) {
+	var err error
 
 	log.Debug("Creating new project: %s", name)
-	newProject, err := repository.UpdateOrCreateProject(project)
+	*projectRepository.Project, err = projectRepository.CreateAndReturnProject(name)
 	if err != nil {
-		log.Error("Could not create project: %s; ERR: %+v", name, err)
-		return project, err
+		log.Error("Could not create project: %s; Error: %+v", name, err)
+		return &entities.IProject{}, err
 	}
 
-	return newProject, nil
+	return projectRepository.Project, nil
 }
 
 func GetProjectById(name string) {}

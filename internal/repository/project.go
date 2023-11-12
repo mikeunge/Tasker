@@ -8,34 +8,41 @@ import (
 	log "github.com/mikeunge/Tasker/pkg/logger"
 )
 
-// simple mapper for turnin DB projects into normal project structs
-func transformDbObject(dbProject entities.IDBProject) entities.IProject {
-	var project entities.IProject
-	project.Id = dbProject.Id
-	project.Name = dbProject.Name
-
-	return project
+type IProjectRepository interface {
+	FindAllProjects() ([]entities.IProject, error)
+	FindProjectById(projectId int) (entities.IProject, error)
+	CreateProject(name string) (int, error)
+	CreateAndReturnProject(name string) (entities.IProject, error)
 }
 
-func FindAllProjects() ([]entities.IProject, error) {
-	var projects []entities.IProject
+type ProjectRepository struct {
+	Project *entities.IProject
+}
 
+func NewProjectRepository() *ProjectRepository {
+	return &ProjectRepository{
+		Project: new(entities.IProject),
+	}
+}
+
+func (repo *ProjectRepository) FindAllProjects() ([]entities.IProject, error) {
+	var projects []entities.IProject
 	db := database.Connection()
 	query := "SELECT * FROM projects;"
 
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Could not fetch projects, Error: %+v", err)
 		return projects, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var dbProject entities.IDBProject
-		if err := rows.Scan(&dbProject.Id, &dbProject.Name, &dbProject.CreatedAt); err != nil {
+		var p entities.IProject
+		if err := rows.Scan(&p.Id, &p.Name, &p.CreatedAt); err != nil {
 			return projects, err
 		}
-		projects = append(projects, transformDbObject(dbProject))
+		projects = append(projects, p)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -45,34 +52,66 @@ func FindAllProjects() ([]entities.IProject, error) {
 	return projects, nil
 }
 
-func FindProjectById(projectId int) (entities.IProject, error) {
-	var project entities.IDBProject
-
+func (repo ProjectRepository) FindProjectById(projectId int) (entities.IProject, error) {
+	var project entities.IProject
 	db := database.Connection()
-	query := "SELECT * FROM projects WHERE id = $1;"
-
-	err := db.QueryRow(query, projectId).Scan(&project.Id, &project.Name, &project.CreatedAt)
+	query := fmt.Sprintf("SELECT * FROM projects WHERE id = '%d';", projectId)
+	err := db.QueryRow(query).Scan(&project.Id, &project.Name, &project.CreatedAt)
 	if err != nil {
-		return entities.IProject{}, err
+		return project, err
 	}
 
-	return transformDbObject(project), nil
+	return project, nil
 }
 
-func UpdateOrCreateProject(project entities.IProject) (entities.IProject, error) {
-	var p entities.IProject
-
+func (repo ProjectRepository) CreateProject(name string) (int, error) {
+	var projectId int64
 	db := database.Connection()
-	// query := fmt.Sprintf("INSERT OR REPLACE INTO projects (id, name) VALUES (%d, '%s') ON DUPLICATE KEY UPDATE name = '%s';", project.Id, project.Name, project.Name)
-	query := fmt.Sprintf("INSERT INTO projects (id, name) VALUES (%d, '%s') ON CONFLICT (id) DO UPDATE SET name = '%s';", project.Id, project.Name, project.Name)
+	query := fmt.Sprintf("INSERT INTO projects (name) VALUES ('%s');", name)
 	stmt, err := db.Prepare(query)
 	if err != nil {
-		return p, err
+		return int(projectId), err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec()
+	if err != nil {
+		return int(projectId), err
 	}
 
-	_, err = stmt.Exec()
+	projectId, err = res.LastInsertId()
 	if err != nil {
-		return p, err
+		return int(projectId), err
 	}
-	return p, nil
+
+	return int(projectId), err
+}
+
+func (repo ProjectRepository) CreateAndReturnProject(name string) (entities.IProject, error) {
+	var project entities.IProject
+	var db = database.Connection()
+	var query string = fmt.Sprintf("INSERT INTO projects (name) VALUES ('%s');", name)
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return project, err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec()
+	if err != nil {
+		return project, err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return project, err
+	}
+
+	project, err = repo.FindProjectById(int(id))
+	if err != nil {
+		return project, err
+	}
+
+	return project, nil
 }

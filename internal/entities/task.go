@@ -7,6 +7,6 @@ type ITask struct {
 	Title       string
 	Description string
 	Status      string
-	Done        bool
+	Done        uint8
 	CreatedAt   time.Time
 }
