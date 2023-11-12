@@ -28,7 +28,7 @@ func SetLogLevel(level string) {
 
 func WriteLogToFile(writeToFile bool) {
 	if writeToFile && helpers.PathExists(config.USER_DIR) {
-		file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		file, err := os.OpenFile(config.Config.LogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			panic(fmt.Sprintf("error opening file: %v", err))
 		}
