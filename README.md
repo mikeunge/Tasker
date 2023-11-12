@@ -7,5 +7,5 @@
 
 ## Install
 
-Installation is pretty easy, simply ```git clone``` the repository and run ```make install```.
+Installation is pretty easy, simply ```git clone``` the repository and run ```./scripts/make install```.
 

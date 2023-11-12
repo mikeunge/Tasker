@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+export APP_ENV=developer
+
+function clean_tasker {
+    rm -rf ~/.tasker
+}
+
+function clean_database {
+    rm -rf ~/.tasker/last_migration
+    rm -rf ~/.tasker/database.sqlite
+}
+
+go run main.go --debug $@

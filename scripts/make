@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+#
+# Make script for tasker.
+# This script performs all the neccesary build and install steps.
+#
+# @@@@@
+#
+# Global config
+
+DEBUG=false
+MODE=""
+
+LOCAL_DIR="~/.tasker/tasker"
+APP_DIR="/usr/share/tasker"
+MIGRATION_DIR="./migrations"
+SYMLINK_DIR_DIR="/usr/bin"
+BUILD_DIR="./bin/"
+TARGET="tasker"
+SRC="main.go"
+
+function help {
+    echo "--- make script ---"
+    printf "\t-h | --help\tDisplay this information\n"
+    printf "\t-d | --debug\tActivates debug information\n"
+    printf "\t-b | --buil\tBuild %s\n" $TARGET
+    printf "\t-i | --install\Build & install the %s\n" $TARGET
+    printf "\t-c | --clean\Remove local bin: %s\%s\n" $BUILD_DIR $TARGET
+}
+
+# map provided parameter
+for param in "$@"; do
+    case $param in
+        "--debug" | "-d")
+            DEBUG=true
+        ;;
+        "--help" | "-h")
+            help
+            exit 0
+        ;;
+        "--build" | "-b")
+            MODE="build"
+        ;;
+        "--install" | "-i")
+            MODE="install"
+        ;;
+        "--clean" | "-c")
+            MODE="clean"
+        ;;
+        *)
+            printf "Idk about '%s'\nPlease chek --help for more information.\n" $param
+            exit 1
+        ;;
+    esac
+done
+
+if $DEBUG; then
+    set -x
+fi
+
+if [[ "$MODE" == "" ]]; then
+    printf "No mode defined, exiting.\nPlease check --help for more information.\n"
+    exit 0
+fi
+
+function create_folder {
+    local migrations="$APP_DIR/migrations"
+    local bin="$APP_DIR/bin"
+
+    # Create app directory
+    if ! [ -d $APP_DIR ]; then 
+        sudo mkdir -p $APP_DIR
+        if [ $? -ne 0 ]; then
+            printf "Could not create directory: %s\n" "$APP_DIR"
+            exit 1
+        fi
+    fi
+
+    if ! [ -d $bin ]; then 
+        sudo mkdir -p $bin
+        if [ $? -ne 0 ]; then
+            printf "Could not create directory: %s\n" "$bin"
+            exit 1
+        fi
+    fi
+
+    if ! [ -d $migrations ]; then 
+        sudo mkdir -p $migrations
+        if [ $? -ne 0 ]; then
+            printf "Could not create directory: %s\n" "$migrations"
+            exit 1
+        fi
+    fi
+
+    # Create local directory
+    if ! [ -d $LOCAL_DIR ]; then 
+        mkdir -p $LOCAL_DIR
+        if [ $? -ne 0 ]; then
+            printf "Could not create directory: %s\n" "$LOCAL_DIR"
+            exit 1
+        fi
+    fi
+}
+
+function clean {
+    rm -rf $BUILD_DIR
+}
+
+function build {
+    clean
+	mkdir -p $BUILD_DIR
+	go build -o $BUILD_DIR $SRC
+}
+
+function install {
+    sudo cp -r $BUILD_DIR/* $APP_DIR/bin/
+    sudo cp -r $MIGRATION_DIR/* $APP_DIR/migrations/
+    sudo ln -s $APP_DIR/bin/$TARGET $SYMLINK_DIR/$TARGET
+}
+
+case $MODE in
+    "build")
+        build
+    ;;
+    "install")
+        create_folder
+        build
+        install
+    ;;
+    "clean")
+        clean
+    ;;
+    *)
+        printf "Idk about '%s'\n" $MODE
+        exit 1
+    ;;
+esac
