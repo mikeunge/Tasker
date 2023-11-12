@@ -89,21 +89,8 @@ func (repo ProjectRepository) CreateProject(name string) (int, error) {
 
 func (repo ProjectRepository) CreateAndReturnProject(name string) (entities.IProject, error) {
 	var project entities.IProject
-	var db = database.Connection()
-	var query string = fmt.Sprintf("INSERT INTO projects (name) VALUES ('%s');", name)
 
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return project, err
-	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec()
-	if err != nil {
-		return project, err
-	}
-
-	id, err := res.LastInsertId()
+	id, err := repo.CreateProject(name)
 	if err != nil {
 		return project, err
 	}

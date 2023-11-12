@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/mikeunge/Tasker/internal/cli"
-	"github.com/mikeunge/Tasker/internal/services"
 
 	log "github.com/mikeunge/Tasker/pkg/logger"
 )
@@ -30,13 +29,6 @@ func init() {
 }
 
 func App() int {
-	projectName := "Project 1"
-	projects, err := services.NewProject(projectName)
-	if err != nil {
-		log.Error("Could not load projects: %+v", err)
-	}
-	fmt.Printf("%+v\n", projects)
-
 	// TODO: write the UI & the decision tree
 
 	return 0
