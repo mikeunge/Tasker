@@ -108,3 +108,16 @@ func GetFilesInDir(path string) ([]string, error) {
 
 	return files, nil
 }
+
+/**
+ * RemoveFile(string) error
+ *
+ * Remove a file, returns error on fail.
+ */
+func RemoveFile(path string) error {
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
