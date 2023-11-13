@@ -1,11 +1,11 @@
 # Tasker
 
-> A simple task & time tracker built in go with beauty and usability in mind.
+> A simple task & time tracker built with beauty and usability in mind.
 
 ## About
 
 
 ## Install
 
-Installation is pretty easy, simply ```git clone``` the repository and run ```./scripts/make install```.
+Installation is pretty easy, simply ```git clone``` the repository, change permissions ```chmod +x ./scripts/make``` and run ```./scripts/make install```.
 
